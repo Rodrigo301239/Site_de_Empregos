@@ -1,6 +1,5 @@
 
 import sqlite3
-from werkzeug.security import generate_password_hash,check_password_hash
 
 def conectar_banco():
     conexao = sqlite3.connect("Banco.db")
@@ -27,21 +26,47 @@ def texto():
     conexao = conectar_banco()
     cursor = conexao.cursor()
     palavras = "ROBOCOPGAY!"
-    #cursor.execute(''' INSERT INTO Banco (teste) VALUES (?)''', (palavras,))
-    
-    #conexao.commit()
+
     return palavras
 
-def criar_conta(etapa,nome,email,senha):
+def criar_conta(verificacao,nome,email,senha):
     conexao = conectar_banco()
     cursor = conexao.cursor()
     
-    if etapa == 1:
-    
-        cursor.execute("""insert into empregados(email) VALUES (?)""",(email,))
+    if verificacao == 1:
+        cursor.execute("""insert into empregados(email,nome,senha) VALUES (?,?,?)"""(email,nome,senha))  
         print("deu boa")
-    
+    elif verificacao == 2:
+        cursor.execute("""insert into empregadores(email,nome,senha) VALUES (?,?,?)"""(email,nome,senha))  
+        print("deu boa")
+        
     conexao.commit()
+    conexao.close()
+
+def logar(verificacao,email,senha):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    
+    if verificacao == 1:
+    
+        cursor.execute("""SELECT * from empregados where email = ?""",(email))
+        usuario = cursor.fetchall()
+    
+    elif verificacao == 2:
+        
+        cursor.execute("""SELECT * from empregadores where email = ?""",(email))
+        usuario = cursor.fetchall()
+    
+    
+    if usuario:
+        if usuario[2] == senha:
+            return True
+        else:
+            return "Senha ou email incorretos"
+    return "Senha ou email incorretos"
+    
+    
+    
 
 if __name__ == "__main__":
     criar_tabelas()

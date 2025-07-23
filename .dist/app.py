@@ -1,101 +1,88 @@
-from flask import Flask, render_template, request, url_for, redirect, flash, session
-app = Flask(__name__)
-app.secret_key = "chave_muito_segura"
+import customtkinter as ctk
+import tkinter.messagebox
 import database
 
-@app.route('/') #rota para a página inicial
-def index():
-    return render_template('index.html')
+def limpar_tela():
+    for widget in app.winfo_children():
+        widget.destroy()
 
-
-@app.route('/login', methods=["GET", "POST"]) #rota para a página de login
-def login():
-    if request.method == "POST":
-        form = request.form
-        if database.fazer_login(form) == True:
-            session['usuario'] = form['email'] # Armazena o email do usuário na sessão
-            return redirect(url_for('home'))
-        else:
-            return render_template('login.html')
-    else:
-        return render_template('login.html')
+# Função dos botões
+def mostrar_texto():
+    texto = database.texto()
+    tkinter.messagebox.showinfo("Mensagem", f"{texto}")
     
+def busco_emprego():
+    limpar_tela()
+    
+    # Card principal (com borda e fundo escuro)
+    card_frame = ctk.CTkFrame(
+    app,
+    fg_color="#2E2E2E",           # Cor de fundo
+    border_width=2,               # Espessura da borda
+    border_color="#4ECB71",       # Cor da borda (verde)
+    corner_radius=10              # Cantos arredondados
+    )
+    card_frame.pack(pady=40, padx=300, fill="both", expand=True)
 
-@app.route('/home')
-def home():
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-    lista_musicas = database.buscar_musicas(session['usuario'])
-    return render_template('home.html', musicas=lista_musicas)
+    # Título do card
+    card_title = ctk.CTkLabel(
+        card_frame,
+        text="📝 Escolha uma Opção",
+        font=("Arial", 16, "bold"),
+        text_color="#4ECB71"  # Cor do texto
+    )
+    card_title.pack(pady=12)
 
-
-@app.route('/cadastro', methods=["GET","POST"]) #rota para a página de login
-def cadastro():
-    if request.method == "POST":
-        form = request.form
-        if database.criar_usuario(form) == True:
-            return render_template('login.html')
-        else:
-            return "Ocorreu um erro ao cadastrar o Usuário"
-    else:
-        return render_template('cadastro.html')
     
     
-@app.route('/criar_musica', methods=["GET","POST"]) #rota para a pagina de criação
-def criar_musica():
-    if request.method == "POST":
-        form = request.form
-        if database.criar_musica(form['titulo'],form['autor'],form['imagem'],form['conteudo'],form['status'], session['usuario']) == True:
-            return redirect(url_for('home'))
-        else:
-            pass
-    else:
-        return render_template('criar_musica.html')
-    
-    
-@app.route('/musicas/editar/<int:id>', methods=["GET", "POST"])
-def editar_musica(id):
-    # pega o e-mail da sessão para verificar se é o dono da tarefa
-    email = session['usuario']
-    if (request.method == "GET"):
-        conteudo_musica = database.buscar_conteudo_musica(id)
-        return render_template('editar.html', musica=conteudo_musica, id=id)
-    if (request.method == "POST"):
-        form = request.form
-        novo_titulo = form['titulo']
-        novo_autor = form['autor']
-        nova_imagem = form['imagem']
-        novo_status = form['status']
-        novo_conteudo = form['conteudo']
-        database.editar_musica(novo_titulo,novo_autor,nova_imagem,novo_conteudo,novo_status, id)
-        return redirect(url_for('home'))
-    
-@app.route('/loggout')
-def loggout():
-    session.pop
-    return redirect(url_for('login'))
+# Configuração geral
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("dark-blue")
 
-    
-@app.route('/excluir_usuario')
-def excluir_usuario():
-    email = session['usuario']
-    if database.excluir_usuario(email):
-        return redirect(url_for('cadastro'))
-    else:
-        return "Ocorreu um erro ao excluir o usuário"
-    
-    
-@app.route('/musicas/excluir/<int:id>', methods=["GET"])
-def excluir_musica(id):
+app = ctk.CTk()
+app.title("Site De Empregos")
+app.geometry("800x450")
 
-    email = session['usuario']
+# Card principal (com borda e fundo escuro)
+card_frame = ctk.CTkFrame(
+    app,
+    fg_color="#2E2E2E",           # Cor de fundo
+    border_width=2,               # Espessura da borda
+    border_color="#4ECB71",       # Cor da borda (verde)
+    corner_radius=10              # Cantos arredondados
+)
+card_frame.pack(pady=40, padx=300, fill="both", expand=True)
 
-    if database.excluir_musica(id, email):
-        return redirect(url_for('home'))
-    else:
-        return "Ocorreu um erro ao excluir a Música!"
+# Título do card
+card_title = ctk.CTkLabel(
+    card_frame,
+    text="📝 Escolha uma Opção",
+    font=("Arial", 16, "bold"),
+    text_color="#4ECB71"  # Cor do texto
+)
+card_title.pack(pady=12)
 
 
-# parte principal do
-if __name__ == '__main__':
-    app.run(debug=True)
+
+# Botões estilizados dentro do card
+botao1 = ctk.CTkButton(
+    card_frame,
+    text="Busco Emprego",
+    command=busco_emprego,
+    fg_color="#3B8ED0",  # Azul
+    hover_color="#1F6AA5",
+    corner_radius=8
+)
+botao1.pack(pady=10, padx=20, fill="x")
+
+botao2 = ctk.CTkButton(
+    card_frame,
+    text="Sou Empresa",
+    command="abre uma nova aba",
+    fg_color="#2E7D32",  # Verde
+    hover_color="#1B5E20",
+    corner_radius=8
+)
+botao2.pack(pady=10, padx=20, fill="x")
+
+app.mainloop()
